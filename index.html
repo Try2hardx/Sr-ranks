@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Special Ranks | Official Leaderboard</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Bebas+Neue&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #060a12;
+      --bg2:     #0a1020;
+      --bg3:     #0e1628;
+      --bg4:     #121d32;
+      --border:  #162035;
+      --border2: #1e2e48;
+      --text:    #a8bcdc;
+      --muted:   #3a506e;
+      --accent:  #1a56db;
+      --accent2: #3b82f6;
+      --glow:    rgba(26,86,219,0.28);
+      --glow2:   rgba(59,130,246,0.18);
+
+      --ruby:      #e8526a;
+      --amethyst:  #818cf8;
+      --netherite: #6b7280;
+      --diamond:   #38bdf8;
+      --emerald:   #34d399;
+      --gold:      #fbbf24;
+      --iron:      #94a3b8;
+      --copper:    #c2854b;
+
+      --retired:   #c9a96e;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Rajdhani', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(26,86,219,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(26,86,219,0.04) 1px, transparent 1px);
+      background-size: 44px 44px;
+      pointer-events: none; z-index: 0;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      top: -220px; left: 50%; transform: translateX(-50%);
+      width: 900px; height: 650px;
+      background: radial-gradient(ellipse, rgba(26,86,219,0.14) 0%, transparent 65%);
+      pointer-events: none; z-index: 0;
+    }
+
+    .wrap { max-width: 1320px; margin: 0 auto; padding: 2rem 1.5rem 6rem; position: relative; z-index: 1; }
+
+    /* ── HEADER ── */
+    .site-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      flex-wrap: wrap; gap: 1.5rem;
+      margin-bottom: 2.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo-block { display: flex; align-items: center; gap: 16px; }
+
+    .logo-icon {
+      width: 52px; height: 52px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.5rem; color: #fff;
+      letter-spacing: 1px;
+      box-shadow: 0 0 30px var(--glow);
+      flex-shrink: 0;
+    }
+
+    .logo-text { line-height: 1; }
+    .logo-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.4rem; letter-spacing: 3px;
+      background: linear-gradient(90deg, #fff 40%, var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .logo-sub {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem; color: var(--muted); letter-spacing: 4px;
+      text-transform: uppercase; margin-top: 2px;
+    }
+
+    .header-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+    .hdr-btn {
+      display: flex; align-items: center; gap: 7px;
+      background: var(--bg2); border: 1px solid var(--border);
+      padding: 8px 14px; border-radius: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; color: var(--muted);
+      cursor: pointer; transition: all 0.2s; text-decoration: none;
+    }
+    .hdr-btn:hover { border-color: var(--accent); color: var(--accent2); box-shadow: 0 0 16px var(--glow2); transform: translateY(-2px); }
+
+    .search-wrap { position: relative; }
+    #search {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 8px 14px 8px 32px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem; letter-spacing: 1.5px; color: #fff;
+      text-transform: uppercase; outline: none;
+      width: 190px; transition: all 0.2s;
+    }
+    #search::placeholder { color: var(--muted); }
+    #search:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--glow2); }
+
+    /* ── STATS BAR ── */
+    .stats-bar { display: flex; gap: 12px; margin-bottom: 2rem; flex-wrap: wrap; }
+    .stat-chip {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 10px 16px;
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    .stat-chip-label { font-family: 'JetBrains Mono', monospace; font-size: 0.55rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+    .stat-chip-val { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; letter-spacing: 2px; color: #fff; }
+    .stat-chip-val.accent { color: var(--accent2); }
+
+    /* ── TAB NAV ── */
+    .tab-nav {
+      display: flex; gap: 6px; margin-bottom: 1.5rem;
+      overflow-x: auto; padding: 4px 0 10px;
+      scrollbar-width: none;
+    }
+    .tab-nav::-webkit-scrollbar { display: none; }
+    .tab-btn {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--bg2); border: 1px solid var(--border);
+      padding: 9px 18px; border-radius: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem; font-weight: 700; letter-spacing: 1.5px;
+      text-transform: uppercase; color: var(--muted);
+      cursor: pointer; white-space: nowrap; transition: all 0.2s;
+    }
+    .tab-btn:hover { border-color: var(--border2); color: var(--text); transform: translateY(-2px); }
+    .tab-btn.active { background: var(--bg3); border-color: var(--accent); color: var(--accent2); box-shadow: 0 0 20px var(--glow2); }
+
+    .tab-icon {
+      width: 18px; height: 18px;
+      object-fit: contain;
+      image-rendering: pixelated;
+      flex-shrink: 0;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+    .tab-btn:hover .tab-icon,
+    .tab-btn.active .tab-icon { opacity: 1; }
+
+    /* ── RANK BADGE ── */
+    .rank-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.55rem; font-weight: 700; letter-spacing: 1.5px;
+      text-transform: uppercase; padding: 3px 8px;
+      border-radius: 4px; border: 1px solid; white-space: nowrap;
+    }
+    .rank-ruby        { color: var(--ruby);      border-color: rgba(232,82,106,0.3);   background: rgba(232,82,106,0.07);   }
+    .rank-amethyst    { color: var(--amethyst);  border-color: rgba(129,140,248,0.3);  background: rgba(129,140,248,0.07);  }
+    .rank-netherite   { color: var(--netherite); border-color: rgba(107,114,128,0.3);  background: rgba(107,114,128,0.07);  }
+    .rank-diamond     { color: var(--diamond);   border-color: rgba(56,189,248,0.3);   background: rgba(56,189,248,0.07);   }
+    .rank-emerald     { color: var(--emerald);   border-color: rgba(52,211,153,0.3);   background: rgba(52,211,153,0.07);   }
+    .rank-gold        { color: var(--gold);      border-color: rgba(251,191,36,0.3);   background: rgba(251,191,36,0.07);   }
+    .rank-iron        { color: var(--iron);      border-color: rgba(148,163,184,0.3);  background: rgba(148,163,184,0.07);  }
+    .rank-copper      { color: var(--copper);    border-color: rgba(194,133,75,0.3);   background: rgba(194,133,75,0.07);   }
+
+    /* ── FORMER PILL ── */
+    .former-pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.45rem; font-weight: 700; letter-spacing: 1.5px;
+      text-transform: uppercase; padding: 2px 5px;
+      border-radius: 3px;
+      color: var(--retired);
+      border: 1px solid rgba(201,169,110,0.35);
+      background: rgba(201,169,110,0.08);
+      flex-shrink: 0;
+    }
+
+    /* ── PLAYER CARD ── */
+    .player-card {
+      display: flex; align-items: center; gap: 16px;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 14px 20px;
+      margin-bottom: 6px; cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.175,0.885,0.32,1.275);
+      position: relative; overflow: hidden;
+      animation: fadeUp 0.25s ease both;
+    }
+    .player-card::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+      width: 3px; border-radius: 3px 0 0 3px;
+      background: var(--border); transition: background 0.2s;
+    }
+    .player-card:hover { border-color: var(--border2); background: var(--bg3); transform: translateX(5px); box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+    .player-card:hover::before { background: var(--accent); }
+
+    .player-card.top-1 { border-color: rgba(251,191,36,0.3); background: linear-gradient(90deg, rgba(251,191,36,0.04), var(--bg2)); }
+    .player-card.top-1::before { background: #fbbf24; }
+    .player-card.top-2 { border-color: rgba(148,163,184,0.25); background: linear-gradient(90deg, rgba(148,163,184,0.04), var(--bg2)); }
+    .player-card.top-2::before { background: #94a3b8; }
+    .player-card.top-3 { border-color: rgba(194,133,75,0.25); background: linear-gradient(90deg, rgba(194,133,75,0.04), var(--bg2)); }
+    .player-card.top-3::before { background: #c2854b; }
+
+    .card-pos {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.4rem; letter-spacing: 1px;
+      color: var(--muted); min-width: 36px; text-align: center; flex-shrink: 0;
+    }
+    .card-pos.gold   { color: var(--gold); }
+    .card-pos.silver { color: var(--iron); }
+    .card-pos.bronze { color: var(--copper); }
+
+    .player-head {
+      width: 46px; height: 46px; border-radius: 10px;
+      image-rendering: pixelated; flex-shrink: 0;
+      border: 1px solid var(--border);
+    }
+
+    .card-info { flex: 1; min-width: 0; }
+    .card-ign {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.25rem; letter-spacing: 2px;
+      color: #fff; line-height: 1;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .card-meta { display: flex; align-items: center; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
+    .card-pts { font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: var(--muted); letter-spacing: 1px; }
+    .region-pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.55rem; color: var(--muted);
+      border: 1px solid var(--border); border-radius: 4px;
+      padding: 2px 6px; letter-spacing: 1px; text-transform: uppercase;
+    }
+
+    .retired-pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.5rem; font-weight: 700; letter-spacing: 1.5px;
+      text-transform: uppercase; padding: 2px 6px;
+      border-radius: 4px;
+      color: var(--retired);
+      border: 1px solid rgba(201,169,110,0.3);
+      background: rgba(201,169,110,0.07);
+    }
+
+    .card-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; margin-left: auto; }
+
+    .pts-bar-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+    .pts-number { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: 2px; color: #fff; line-height: 1; }
+    .pts-bar-track { width: 80px; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+    .pts-bar-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 0.8s cubic-bezier(0.22,1,0.36,1); }
+
+    .card-tiers { display: flex; gap: 5px; }
+    .ctier { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+    .ctier-label { font-family: 'JetBrains Mono', monospace; font-size: 0.45rem; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+    .ctier-val {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; font-weight: 700;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 4px; padding: 2px 5px; white-space: nowrap;
+    }
+    .ctier-val.is-former {
+      border-color: rgba(201,169,110,0.3);
+      background: rgba(201,169,110,0.05);
+      opacity: 0.7;
+    }
+
+    .tier-UN { color: #a1a1aa; }
+    .tier-LN { color: #71717a; }
+    .tier-UD { color: #7dd3fc; }
+    .tier-LD { color: #38bdf8; }
+    .tier-UE { color: #6ee7b7; }
+    .tier-LE { color: #34d399; }
+    .tier-UG { color: #fde68a; }
+    .tier-LG { color: #fbbf24; }
+    .tier-UI { color: #cbd5e1; }
+    .tier-LI { color: #94a3b8; }
+    .tier-UC { color: #fdba74; }
+    .tier-LC { color: #c2854b; }
+
+    /* ── retired tier CSS classes ── */
+    .tier-F-UN { color: #c9a96e; }
+    .tier-F-LN { color: #b8935a; }
+    .tier-F-UD { color: #a87d46; }
+    .tier-F-LD { color: #987035; }
+
+    @media (max-width: 640px) {
+      .card-tiers, .pts-bar-wrap { display: none; }
+    }
+
+    /* ── TIER SCROLL VIEW ── */
+    .tier-scroll-wrapper {
+      overflow-x: auto;
+      padding-bottom: 12px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+      -webkit-overflow-scrolling: touch;
+    }
+    .tier-scroll-wrapper::-webkit-scrollbar { height: 5px; }
+    .tier-scroll-wrapper::-webkit-scrollbar-track { background: transparent; }
+    .tier-scroll-wrapper::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+    .tier-scroll-wrapper::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+    .tier-scroll-inner {
+      display: flex;
+      gap: 10px;
+      min-width: max-content;
+      padding: 4px 2px 4px 2px;
+    }
+
+    .tier-col {
+      width: 180px;
+      flex-shrink: 0;
+    }
+
+    .tier-col-head {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 0.8rem; letter-spacing: 3px; text-transform: uppercase;
+      text-align: center; padding: 10px; border-radius: 8px;
+      margin-bottom: 8px; border-bottom: 2px solid;
+    }
+    .tch-upper-netherite { color: #a1a1aa; border-color: #a1a1aa; background: rgba(161,161,170,0.06); }
+    .tch-lower-netherite { color: #71717a; border-color: #71717a; background: rgba(113,113,122,0.05); }
+    .tch-upper-diamond   { color: #7dd3fc; border-color: #7dd3fc; background: rgba(125,211,252,0.06); }
+    .tch-lower-diamond   { color: #38bdf8; border-color: #38bdf8; background: rgba(56,189,248,0.05); }
+    .tch-upper-emerald   { color: #6ee7b7; border-color: #6ee7b7; background: rgba(110,231,183,0.06); }
+    .tch-lower-emerald   { color: #34d399; border-color: #34d399; background: rgba(52,211,153,0.05); }
+    .tch-upper-gold      { color: #fde68a; border-color: #fde68a; background: rgba(253,230,138,0.06); }
+    .tch-lower-gold      { color: #fbbf24; border-color: #fbbf24; background: rgba(251,191,36,0.05); }
+    .tch-upper-iron      { color: #cbd5e1; border-color: #cbd5e1; background: rgba(203,213,225,0.05); }
+    .tch-lower-iron      { color: #94a3b8; border-color: #94a3b8; background: rgba(148,163,184,0.05); }
+    .tch-upper-copper    { color: #fdba74; border-color: #fdba74; background: rgba(253,186,116,0.06); }
+    .tch-lower-copper    { color: #c2854b; border-color: #c2854b; background: rgba(194,133,75,0.05); }
+
+    /* Former sub-column header */
+    .tier-former-head {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.45rem; letter-spacing: 2px; text-transform: uppercase;
+      text-align: center; padding: 4px 8px; border-radius: 4px;
+      margin-bottom: 5px;
+      color: var(--retired);
+      border: 1px solid rgba(201,169,110,0.2);
+      background: rgba(201,169,110,0.05);
+    }
+
+    .mini-card {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 10px; margin-bottom: 5px; border-radius: 8px;
+      background: var(--bg2); border: 1px solid var(--border);
+      cursor: pointer; transition: all 0.2s;
+      animation: fadeUp 0.2s ease both;
+    }
+    .mini-card:hover { border-color: var(--accent); background: var(--bg3); transform: translateX(2px); }
+    .mini-card.is-former {
+      border-color: rgba(201,169,110,0.2);
+      background: rgba(201,169,110,0.03);
+      opacity: 0.8;
+    }
+    .mini-card.is-former:hover { border-color: rgba(201,169,110,0.45); background: rgba(201,169,110,0.07); }
+
+    .mini-head { width: 22px; height: 22px; border-radius: 4px; image-rendering: pixelated; flex-shrink: 0; }
+    .mini-ign {
+      font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 0.78rem;
+      text-transform: uppercase; color: #fff; flex: 1; min-width: 0;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .mini-pts { font-family: 'JetBrains Mono', monospace; font-size: 0.5rem; color: var(--muted); flex-shrink: 0; }
+
+    .scroll-hint {
+      display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.55rem;
+      color: var(--muted); letter-spacing: 2px; text-transform: uppercase;
+    }
+    .scroll-hint-arrow { animation: nudge 1.5s ease-in-out infinite; }
+    @keyframes nudge { 0%,100%{transform:translateX(0)} 50%{transform:translateX(6px)} }
+
+    /* ── MODAL ── */
+    #modal-overlay {
+      display: none; position: fixed; inset: 0; z-index: 300;
+      background: rgba(0,0,0,0.87); backdrop-filter: blur(14px);
+      align-items: flex-start; justify-content: center;
+      padding: 16px; overflow-y: auto;
+    }
+    #modal-overlay.open { display: flex; }
+
+    #modal-inner-wrap {
+      width: 100%;
+      max-width: 420px;
+      margin: auto;
+      padding: 8px 0;
+    }
+
+    .modal-box {
+      background: var(--bg2); border: 1px solid var(--border2);
+      border-radius: 20px; width: 100%;
+      position: relative; overflow: hidden;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.7), 0 0 60px var(--glow);
+    }
+    .modal-box::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent2), transparent);
+    }
+    .modal-inner { padding: 20px 20px 20px; }
+    .modal-close {
+      position: absolute; top: 14px; right: 14px; width: 30px; height: 30px; border-radius: 50%;
+      background: var(--bg3); border: 1px solid var(--border); color: var(--muted);
+      cursor: pointer; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s; z-index: 10;
+    }
+    .modal-close:hover { border-color: var(--accent); color: var(--accent2); }
+
+    /* ── CHARACTER RENDER ── */
+    .modal-render {
+      display: flex; justify-content: center; align-items: center;
+      margin-bottom: 12px; height: 140px; position: relative;
+      background: linear-gradient(180deg, rgba(26,86,219,0.06) 0%, transparent 100%);
+      border-radius: 12px; overflow: visible;
+    }
+    .modal-render::before {
+      content: ''; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
+      width: 60px; height: 12px;
+      background: radial-gradient(ellipse, rgba(59,130,246,0.25) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .skin-img-wrap { display: flex; align-items: center; justify-content: center; height: 100%; }
+    .skin-body-img {
+      height: 128px; width: auto; image-rendering: pixelated;
+      filter: drop-shadow(0 6px 18px rgba(0,0,0,0.8)) drop-shadow(0 0 10px rgba(59,130,246,0.2));
+      transition: transform 0.3s ease; display: block;
+    }
+    .skin-body-img:hover { transform: scale(1.05); }
+
+    .modal-ign { font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; letter-spacing: 3px; text-align: center; color: #fff; line-height: 1; word-break: break-word; }
+    .modal-meta-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 8px 0 20px; flex-wrap: wrap; }
+
+    .modal-tiers { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 20px; }
+    .modal-tier-pill {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 10px; padding: 10px; text-align: center; transition: border-color 0.2s;
+    }
+    .modal-tier-pill:hover { border-color: var(--border2); }
+    .modal-tier-pill.is-former {
+      border-color: rgba(201,169,110,0.2);
+      background: rgba(201,169,110,0.03);
+    }
+    .modal-tier-pill.is-former:hover { border-color: rgba(201,169,110,0.4); }
+    .modal-tier-label {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.55rem; color: var(--muted);
+      letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 4px;
+      display: flex; align-items: center; justify-content: center; gap: 4px; flex-wrap: wrap;
+    }
+    .modal-tier-val { font-family: 'Rajdhani', sans-serif; font-size: 1.1rem; font-weight: 700; }
+
+    /* ── RETIRED SECTION in modal ── */
+    .retired-section {
+      margin-bottom: 20px;
+      border: 1px solid rgba(201,169,110,0.2);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .retired-section-head {
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 14px;
+      background: rgba(201,169,110,0.07);
+      border-bottom: 1px solid rgba(201,169,110,0.15);
+    }
+    .retired-section-head-icon {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--retired); flex-shrink: 0;
+    }
+    .retired-section-head-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.55rem; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--retired);
+    }
+    .retired-section-head-sub {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.5rem; color: var(--muted); letter-spacing: 1px;
+      margin-left: auto;
+    }
+    .retired-tiers-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;
+      padding: 10px;
+    }
+    .retired-tier-pill {
+      background: var(--bg); border: 1px solid rgba(201,169,110,0.15);
+      border-radius: 10px; padding: 10px; text-align: center;
+    }
+    .retired-tier-pill-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.5rem; color: var(--muted); letter-spacing: 1.5px;
+      text-transform: uppercase; margin-bottom: 4px;
+    }
+    .retired-tier-pill-val {
+      font-family: 'Rajdhani', sans-serif; font-size: 1.05rem; font-weight: 700;
+      color: var(--retired);
+    }
+    .retired-pts-note {
+      padding: 8px 14px 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.5rem; color: var(--muted); letter-spacing: 1px;
+      text-align: center; border-top: 1px solid rgba(201,169,110,0.1);
+    }
+
+    .modal-stats { border-top: 1px solid var(--border); padding-top: 16px; display: flex; flex-direction: column; gap: 10px; }
+    .stat-row { display: flex; align-items: center; justify-content: space-between; }
+    .stat-label { font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase; }
+    .stat-val { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; letter-spacing: 2px; color: #fff; }
+    .stat-region { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; font-weight: 700; color: #fff; letter-spacing: 2px; }
+
+    .rank-progress { margin-top: 14px; }
+    .rp-label { font-family: 'JetBrains Mono', monospace; font-size: 0.55rem; color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 6px; display: flex; justify-content: space-between; }
+    .rp-track { height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
+    .rp-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+
+    /* ── INFO MODALS ── */
+    .info-modal-box {
+      background: var(--bg2); border: 1px solid var(--border2);
+      border-radius: 20px; width: 100%; max-width: 360px;
+      padding: 28px 24px; position: relative;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.7), 0 0 60px var(--glow);
+    }
+    .info-modal-box::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent2), transparent); border-radius: 20px 20px 0 0;
+    }
+    .info-modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; letter-spacing: 3px; color: var(--accent2); text-align: center; margin-bottom: 4px; }
+    .info-modal-sub { font-family: 'JetBrains Mono', monospace; font-size: 0.55rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; text-align: center; margin-bottom: 20px; }
+    .info-scroll { max-height: 420px; overflow-y: auto; padding-right: 4px; }
+
+    .rank-list-row {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 10px; padding: 12px 16px; margin-bottom: 7px;
+      transition: border-color 0.2s; gap: 10px;
+    }
+    .rank-list-row:hover { border-color: var(--border2); }
+    .rank-list-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.05rem; letter-spacing: 2px; }
+    .rank-list-range { font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: var(--muted); }
+
+    .pts-list-row { display: flex; align-items: center; justify-content: space-between; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 10px 16px; margin-bottom: 7px; }
+    .pts-list-tier { font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 0.95rem; }
+    .pts-list-val { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: #fff; font-weight: 700; }
+
+    .pts-section-divider {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.5rem; letter-spacing: 2.5px; text-transform: uppercase;
+      color: var(--retired); padding: 10px 4px 6px;
+      border-top: 1px solid rgba(201,169,110,0.2);
+      margin-top: 4px;
+    }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+    .loading-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 20px; gap: 16px; }
+    .loading-spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--accent2); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+
+    .credit { position: fixed; bottom: 16px; right: 20px; color: var(--muted); font-size: 0.55rem; font-family: 'JetBrains Mono', monospace; letter-spacing: 2px; text-transform: uppercase; pointer-events: none; z-index: 50; opacity: 0.5; }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    @media (max-width: 640px) {
+      .logo-name { font-size: 1.8rem; }
+      .modal-tiers { grid-template-columns: repeat(2, 1fr); }
+      .tier-col { width: 155px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <header class="site-header">
+      <div class="logo-block">
+        <img src="icons/logo.png" alt="Special Ranks" style="width:52px;height:52px;border-radius:14px;object-fit:contain;image-rendering:pixelated;flex-shrink:0;box-shadow:0 0 30px rgba(26,86,219,0.28);">
+        <div class="logo-text">
+          <div class="logo-name">Special Ranks</div>
+          <div class="logo-sub">SpecialRanks · Official Leaderboard</div>
+        </div>
+      </div>
+      <div class="header-right">
+        <button class="hdr-btn" onclick="showRanksModal()">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          Ranks
+        </button>
+        <button class="hdr-btn" onclick="showPointsModal()">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+          Points
+        </button>
+        <a href="https://discord.gg/y8MZ6mhYrr" target="_blank" class="hdr-btn">
+          <svg width="11" height="11" viewBox="0 0 127.14 96.36" fill="currentColor"><path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z"/></svg>
+          Discord
+        </a>
+        <div class="search-wrap">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#3a506e" stroke-width="2.5" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="search" placeholder="Search player...">
+        </div>
+      </div>
+    </header>
+
+    <div class="stats-bar" id="stats-bar">
+      <div class="stat-chip">
+        <div class="stat-chip-label">Players</div>
+        <div class="stat-chip-val accent" id="stat-players">—</div>
+      </div>
+      <div class="stat-chip">
+        <div class="stat-chip-label">Top Score</div>
+        <div class="stat-chip-val" id="stat-top">—</div>
+      </div>
+      <div class="stat-chip">
+        <div class="stat-chip-label">Avg Score</div>
+        <div class="stat-chip-val" id="stat-avg">—</div>
+      </div>
+      <div class="stat-chip">
+        <div class="stat-chip-label">Current View</div>
+        <div class="stat-chip-val accent" id="stat-mode">Overall</div>
+      </div>
+    </div>
+
+    <nav class="tab-nav">
+      <div class="tab-btn active" onclick="setMode('overall',this)">
+        <img class="tab-icon" src="icons/overall.png" onerror="this.style.display='none'" alt="">
+        Overall
+      </div>
+      <div class="tab-btn" onclick="setMode('diacart',this)">
+        <img class="tab-icon" src="icons/diacart.png" onerror="this.style.display='none'" alt="">
+        Dia Cart
+      </div>
+      <div class="tab-btn" onclick="setMode('bucket',this)">
+        <img class="tab-icon" src="icons/bucket.png" onerror="this.style.display='none'" alt="">
+        Bucket
+      </div>
+      <div class="tab-btn" onclick="setMode('diacrystal',this)">
+        <img class="tab-icon" src="icons/diacrystal.png" onerror="this.style.display='none'" alt="">
+        Dia Crystal
+      </div>
+      <div class="tab-btn" onclick="setMode('end',this)">
+        <img class="tab-icon" src="icons/end.png" onerror="this.style.display='none'" alt="">
+        End
+      </div>
+      <div class="tab-btn" onclick="setMode('shieldpot',this)">
+        <img class="tab-icon" src="icons/shieldpot.png" onerror="this.style.display='none'" alt="">
+        Shield Pot
+      </div>
+      <div class="tab-btn" onclick="setMode('heartbreak',this)">
+        <img class="tab-icon" src="icons/heartbreak.png" onerror="this.style.display='none'" alt="">
+        Heartbreak
+      </div>
+      <div class="tab-btn" onclick="setMode('nethsword',this)">
+        <img class="tab-icon" src="icons/nethsword.png" onerror="this.style.display='none'" alt="">
+        Neth Sword
+      </div>
+      <div class="tab-btn" onclick="setMode('ironmace',this)">
+        <img class="tab-icon" src="icons/ironmace.png" onerror="this.style.display='none'" alt="">
+        Iron Mace
+      </div>
+      <div class="tab-btn" onclick="setMode('ogd',this)">
+        <img class="tab-icon" src="icons/ogd.png" onerror="this.style.display='none'" alt="">
+        OGD
+      </div>
+      <div class="tab-btn" onclick="setMode('goldaxe',this)">
+        <img class="tab-icon" src="icons/goldaxe.png" onerror="this.style.display='none'" alt="">
+        Gold Axe
+      </div>
+      <div class="tab-btn" onclick="setMode('ironsmp',this)">
+        <img class="tab-icon" src="icons/ironsmp.png" onerror="this.style.display='none'" alt="">
+        Iron SMP
+      </div>
+    </nav>
+
+    <div id="main-content">
+      <div class="loading-state">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Loading leaderboard...</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="credit">Special Ranks · Official</div>
+
+  <div id="modal-overlay" onclick="closeModal()">
+    <div id="modal-inner-wrap" onclick="event.stopPropagation()"></div>
+  </div>
+
+  <script src="https://unpkg.com/skinview3d@3.0.0-rc.4/bundles/skinview3d.bundle.js"></script>
+  <script>
+    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQmJID1ZgBeBuGly7hdBf7RIJYj4Mbdarv1U71CeZ8HB8g1diBp32tmUOiOejpQX5Td8ZGOrp3a4gzY/pub?output=csv';
+
+    // ── Active (game-mode) presets ──────────────────────────────────────────
+    const PRESET_KEYS = ['diacart','bucket','diacrystal','end','shieldpot','heartbreak','nethsword','ironmace','ogd','goldaxe','ironsmp'];
+    const PRESET_LABELS = {
+      diacart:'Dia Cart', bucket:'Bucket', diacrystal:'Dia Crystal',
+      end:'End', shieldpot:'Shield Pot', heartbreak:'Heartbreak',
+      nethsword:'Neth Sword', ironmace:'Iron Mace', ogd:'OGD', goldaxe:'Gold Axe', ironsmp:'Iron SMP'
+    };
+
+    // ── Retired presets ─────────────────────────────────────────────────────
+    const RETIRED_KEYS = ['f_un','f_ln','f_ud','f_ld'];
+    const RETIRED_LABELS = {
+      f_un: 'F Upper Neth',
+      f_ln: 'F Lower Neth',
+      f_ud: 'F Upper Dia',
+      f_ld: 'F Lower Dia',
+    };
+    const RETIRED_SHEET_COL_MAP = {
+      'F UN Tier': 'f_un',
+      'F LN Tier': 'f_ln',
+      'F UD Tier': 'f_ud',
+      'F LD Tier': 'f_ld',
+    };
+    const RETIRED_TIER_POINTS = {
+      f_un: 80,
+      f_ln: 60,
+      f_ud: 45,
+      f_ld: 30,
+    };
+    const RETIRED_DISPLAY = {
+      f_un: 'F Upper Netherite',
+      f_ln: 'F Lower Netherite',
+      f_ud: 'F Upper Diamond',
+      f_ld: 'F Lower Diamond',
+    };
+
+    // ── Active tier column map ───────────────────────────────────────────────
+    const SHEET_COL_MAP = {
+      'Dia Cart New Tier':    'diacart',
+      'Bucket New Tier':      'bucket',
+      'Dia Crystal New Tier': 'diacrystal',
+      'End New Tier':         'end',
+      'Shield Pot New Tier':  'shieldpot',
+      'Heartbreak New Tier':  'heartbreak',
+      'Neth Sword New Tier':  'nethsword',
+      'Iron Mace New Tier':   'ironmace',
+      'OGD New Tier':         'ogd',
+      'Gold Axe New Tier':    'goldaxe',
+      'Iron SMP New Tier':    'ironsmp',
+    };
+
+    const TIER_POINTS = {
+      'Upper Netherite': 100, 'Lower Netherite': 80,
+      'Upper Diamond':   60,  'Lower Diamond':   45,
+      'Upper Emerald':   30,  'Lower Emerald':   20,
+      'Upper Gold':      10,  'Lower Gold':       6,
+      'Upper Iron':       4,  'Lower Iron':        3,
+      'Upper Copper':     2,  'Lower Copper':      1,
+    };
+
+    const RANKS = [
+      { name:'Ruby Overlord',      min:800, max:Infinity, cls:'rank-ruby'      },
+      { name:'Amethyst Legend',    min:720, max:799,      cls:'rank-amethyst'  },
+      { name:'Netherite Elite',    min:600, max:719,      cls:'rank-netherite' },
+      { name:'Diamond Champion',   min:480, max:599,      cls:'rank-diamond'   },
+      { name:'Emerald Strategist', min:320, max:479,      cls:'rank-emerald'   },
+      { name:'Gold Vanguard',      min:180, max:319,      cls:'rank-gold'      },
+      { name:'Iron Operative',     min:80,  max:179,      cls:'rank-iron'      },
+      { name:'Copper Recruit',     min:0,   max:79,       cls:'rank-copper'    },
+    ];
+
+    const TIER_ORDER = [
+      'Upper Netherite','Lower Netherite',
+      'Upper Diamond','Lower Diamond',
+      'Upper Emerald','Lower Emerald',
+      'Upper Gold','Lower Gold',
+      'Upper Iron','Lower Iron',
+      'Upper Copper','Lower Copper',
+    ];
+
+    const TIER_CSS_CLASS = {
+      'Upper Netherite':'tier-UN','Lower Netherite':'tier-LN',
+      'Upper Diamond':'tier-UD',  'Lower Diamond':'tier-LD',
+      'Upper Emerald':'tier-UE',  'Lower Emerald':'tier-LE',
+      'Upper Gold':'tier-UG',     'Lower Gold':'tier-LG',
+      'Upper Iron':'tier-UI',     'Lower Iron':'tier-LI',
+      'Upper Copper':'tier-UC',   'Lower Copper':'tier-LC',
+    };
+
+    const TIER_GRID_CLASSES = {
+      'Upper Netherite':'tch-upper-netherite','Lower Netherite':'tch-lower-netherite',
+      'Upper Diamond':'tch-upper-diamond',    'Lower Diamond':'tch-lower-diamond',
+      'Upper Emerald':'tch-upper-emerald',    'Lower Emerald':'tch-lower-emerald',
+      'Upper Gold':'tch-upper-gold',          'Lower Gold':'tch-lower-gold',
+      'Upper Iron':'tch-upper-iron',          'Lower Iron':'tch-lower-iron',
+      'Upper Copper':'tch-upper-copper',      'Lower Copper':'tch-lower-copper',
+    };
+
+    const FALLBACK_HEAD = 'https://minotar.net/helm/MHF_Steve/44';
+
+    let playersData = [];
+    let sortedOverall = [];
+    let currentMode = 'overall';
+    let maxPts = 1;
+
+    function getRank(pts) {
+      return RANKS.find(r => pts >= r.min && pts <= r.max) || RANKS[RANKS.length - 1];
+    }
+
+    function normalizeTier(val) {
+      if (!val) return '';
+      return val.trim();
+    }
+
+    function tierClass(t) {
+      return TIER_CSS_CLASS[t] || '';
+    }
+
+    function shortTier(t) {
+      if (!t) return '—';
+      return t.replace('Upper ','U.').replace('Lower ','L.');
+    }
+
+    function calcRetiredPoints(retiredTiers) {
+      let pts = 0;
+      RETIRED_KEYS.forEach(k => {
+        if (retiredTiers[k]) pts += RETIRED_TIER_POINTS[k] || 0;
+      });
+      return pts;
+    }
+
+    // ── Parse a raw tier cell value, detecting "Former " prefix ─────────────
+    // Returns { tier: string, isFormer: boolean }
+    function parseTierValue(raw) {
+      if (!raw) return { tier: '', isFormer: false };
+      const trimmed = raw.trim();
+      if (trimmed.toLowerCase().startsWith('former ')) {
+        return { tier: trimmed.slice(7).trim(), isFormer: true };
+      }
+      return { tier: trimmed, isFormer: false };
+    }
+
+    function processRows(rows) {
+      const playerMap = {};
+
+      rows.forEach(row => {
+        const ign = (row['IGN'] || '').trim();
+        if (!ign) return;
+        const discordId = (row['DiscordID'] || row['Discord ID'] || '').trim();
+        const region    = (row['Region'] || '').trim();
+        const key = discordId || ign;
+
+        if (!playerMap[key]) {
+          playerMap[key] = { ign, region, tiers: {}, formerModes: {}, retiredTiers: {}, discordId };
+        }
+
+        playerMap[key].ign = ign;
+        if (region) playerMap[key].region = region;
+
+        // Active tiers — detect "Former " prefix automatically
+        Object.entries(SHEET_COL_MAP).forEach(([col, preset]) => {
+          const raw = normalizeTier(row[col]);
+          if (!raw) return;
+          const { tier, isFormer } = parseTierValue(raw);
+          if (tier) {
+            playerMap[key].tiers[preset] = tier;
+            if (isFormer) playerMap[key].formerModes[preset] = true;
+          }
+        });
+
+        // Retired tiers
+        Object.entries(RETIRED_SHEET_COL_MAP).forEach(([col, key2]) => {
+          const val = normalizeTier(row[col]);
+          if (val && val !== '—' && val !== '-') {
+            playerMap[key].retiredTiers[key2] = val;
+          }
+        });
+      });
+
+      return Object.values(playerMap).map(p => {
+        let totalPoints = 0;
+        PRESET_KEYS.forEach(pk => {
+          // Former players still contribute their points to the total
+          totalPoints += TIER_POINTS[p.tiers[pk]] || 0;
+        });
+        totalPoints += calcRetiredPoints(p.retiredTiers);
+        return { ...p, totalPoints };
+      }).filter(p => p.totalPoints > 0 || Object.values(p.tiers).some(t => t) || Object.values(p.retiredTiers).some(t => t));
+    }
+
+    async function init() {
+      Papa.parse(CSV_URL, {
+        download: true, header: true, skipEmptyLines: true,
+        complete(result) {
+          playersData = processRows(result.data);
+
+          if (playersData.length === 0) {
+            const byKey = {};
+            result.data.forEach(row => {
+              const ign = (row['IGN'] || '').trim();
+              if (!ign) return;
+              byKey[ign] = row;
+            });
+            playersData = Object.values(byKey).map(row => {
+              const ign = (row['IGN'] || '').trim();
+              const region = (row['Region'] || '').trim();
+              const tiers = {};
+              const formerModes = {};
+              const retiredTiers = {};
+              PRESET_KEYS.forEach(pk => {
+                const label = PRESET_LABELS[pk];
+                for (const c of [`${label} New Tier`, `${label} Tier`, label, pk]) {
+                  if (row[c]) {
+                    const { tier, isFormer } = parseTierValue(row[c]);
+                    if (tier) {
+                      tiers[pk] = tier;
+                      if (isFormer) formerModes[pk] = true;
+                    }
+                    break;
+                  }
+                }
+              });
+              RETIRED_KEYS.forEach(rk => {
+                const colName = Object.entries(RETIRED_SHEET_COL_MAP).find(([,v]) => v === rk)?.[0];
+                if (colName && row[colName]) {
+                  const val = row[colName].trim();
+                  if (val && val !== '—' && val !== '-') retiredTiers[rk] = val;
+                }
+              });
+              let totalPoints = 0;
+              PRESET_KEYS.forEach(pk => { totalPoints += TIER_POINTS[tiers[pk]] || 0; });
+              totalPoints += calcRetiredPoints(retiredTiers);
+              return { ign, region, tiers, formerModes, retiredTiers, totalPoints };
+            }).filter(p => p.ign);
+          }
+
+          sortedOverall = [...playersData].sort((a, b) => b.totalPoints - a.totalPoints);
+          maxPts = sortedOverall[0]?.totalPoints || 1;
+
+          const avg = playersData.length
+            ? Math.round(playersData.reduce((s, p) => s + p.totalPoints, 0) / playersData.length)
+            : 0;
+
+          document.getElementById('stat-players').textContent = playersData.length;
+          document.getElementById('stat-top').textContent = maxPts;
+          document.getElementById('stat-avg').textContent = avg;
+
+          renderView();
+        },
+        error() {
+          document.getElementById('main-content').innerHTML =
+            `<div class="loading-state"><div class="loading-text">Failed to load data — ensure the sheet is published publicly.</div></div>`;
+        }
+      });
+    }
+
+    function setMode(mode, el) {
+      currentMode = mode;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      if (el) el.classList.add('active');
+      document.getElementById('stat-mode').textContent =
+        mode === 'overall' ? 'Overall' : PRESET_LABELS[mode] || mode;
+      renderView();
+    }
+
+    function renderView() {
+      const term = document.getElementById('search').value.toLowerCase().trim();
+      const content = document.getElementById('main-content');
+      content.innerHTML = '';
+
+      const filtered = term
+        ? playersData.filter(p => p.ign.toLowerCase().includes(term))
+        : playersData;
+
+      if (currentMode === 'overall') {
+        const sorted = [...filtered].sort((a, b) => b.totalPoints - a.totalPoints);
+
+        if (sorted.length === 0) {
+          content.innerHTML = `<div class="loading-state"><div class="loading-text">No players found</div></div>`;
+          return;
+        }
+
+        sorted.forEach((p, i) => {
+          const card = document.createElement('div');
+          const globalRank = sortedOverall.findIndex(x => (x.discordId && x.discordId === p.discordId) || x.ign === p.ign) + 1;
+          const rankObj = getRank(p.totalPoints);
+          const pct = Math.min(100, Math.round((p.totalPoints / maxPts) * 100));
+
+          const hasRetired = p.retiredTiers && Object.values(p.retiredTiers).some(v => v);
+          // Check if player is former in any gamemode
+          const hasFormer = p.formerModes && Object.values(p.formerModes).some(v => v);
+
+          let posCls = '';
+          let cardCls = 'player-card';
+          if (!term) {
+            if (i === 0) { posCls = 'gold'; cardCls += ' top-1'; }
+            else if (i === 1) { posCls = 'silver'; cardCls += ' top-2'; }
+            else if (i === 2) { posCls = 'bronze'; cardCls += ' top-3'; }
+          }
+          card.className = cardCls;
+          card.style.animationDelay = `${Math.min(i * 0.03, 0.5)}s`;
+          card.onclick = () => openProfile(p, globalRank);
+
+          const tierBadges = PRESET_KEYS.filter(pk => p.tiers[pk]).slice(0, 5).map(pk => {
+            const isFormer = p.formerModes?.[pk];
+            return `
+              <div class="ctier">
+                <div class="ctier-label">${PRESET_LABELS[pk].split(' ')[0]}</div>
+                <div class="ctier-val ${tierClass(p.tiers[pk])}${isFormer ? ' is-former' : ''}">${shortTier(p.tiers[pk])}</div>
+              </div>`;
+          }).join('');
+
+          card.innerHTML = `
+            <div class="card-pos ${posCls}">${i + 1}</div>
+            <img class="player-head" src="https://minotar.net/helm/${encodeURIComponent(p.ign)}/44"
+                 onerror="this.src='${FALLBACK_HEAD}'" loading="lazy">
+            <div class="card-info">
+              <div class="card-ign">${p.ign}</div>
+              <div class="card-meta">
+                <span class="rank-badge ${rankObj.cls}">${rankObj.name}</span>
+                <span class="card-pts">${p.totalPoints} pts</span>
+                ${p.region ? `<span class="region-pill">${p.region}</span>` : ''}
+                ${hasFormer ? `<span class="retired-pill">Former</span>` : ''}
+                ${hasRetired ? `<span class="retired-pill">Retired</span>` : ''}
+              </div>
+            </div>
+            <div class="card-tiers">${tierBadges}</div>
+            <div class="pts-bar-wrap">
+              <div class="pts-number">${p.totalPoints}</div>
+              <div class="pts-bar-track"><div class="pts-bar-fill" style="width:${pct}%"></div></div>
+            </div>`;
+
+          content.appendChild(card);
+        });
+
+      } else {
+        const preset = currentMode;
+
+        const hint = document.createElement('div');
+        hint.className = 'scroll-hint';
+        hint.innerHTML = `<span>Swipe to see all tiers</span><span class="scroll-hint-arrow">→</span>`;
+        content.appendChild(hint);
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'tier-scroll-wrapper';
+        const inner = document.createElement('div');
+        inner.className = 'tier-scroll-inner';
+
+        TIER_ORDER.forEach(tier => {
+          const col = document.createElement('div');
+          col.className = 'tier-col';
+
+          const head = document.createElement('div');
+          head.className = `tier-col-head ${TIER_GRID_CLASSES[tier] || ''}`;
+          head.textContent = tier.replace('Upper ','U. ').replace('Lower ','L. ');
+          col.appendChild(head);
+
+          // Split players into active and former for this tier
+          const activePlayers = filtered
+            .filter(p => normalizeTier(p.tiers[preset]) === tier && !p.formerModes?.[preset])
+            .sort((a, b) => b.totalPoints - a.totalPoints);
+
+          const formerPlayers = filtered
+            .filter(p => normalizeTier(p.tiers[preset]) === tier && p.formerModes?.[preset])
+            .sort((a, b) => b.totalPoints - a.totalPoints);
+
+          if (activePlayers.length === 0 && formerPlayers.length === 0) {
+            const empty = document.createElement('div');
+            empty.style.cssText = 'font-family:"JetBrains Mono",monospace;font-size:0.55rem;color:var(--muted);text-align:center;padding:10px;letter-spacing:1px;';
+            empty.textContent = 'EMPTY';
+            col.appendChild(empty);
+          }
+
+          // Render active players first
+          activePlayers.forEach((p, idx) => {
+            const div = document.createElement('div');
+            div.className = 'mini-card';
+            div.style.animationDelay = `${idx * 0.04}s`;
+            div.onclick = () => openProfile(p, sortedOverall.findIndex(x => (x.discordId && x.discordId === p.discordId) || x.ign === p.ign) + 1);
+            div.innerHTML = `
+              <img class="mini-head" src="https://minotar.net/helm/${encodeURIComponent(p.ign)}/24"
+                   onerror="this.src='${FALLBACK_HEAD}'" loading="lazy">
+              <span class="mini-ign">${p.ign}</span>
+              <span class="mini-pts">${p.totalPoints}pt</span>`;
+            col.appendChild(div);
+          });
+
+          // Render former players with a divider header
+          if (formerPlayers.length > 0) {
+            const formerHead = document.createElement('div');
+            formerHead.className = 'tier-former-head';
+            formerHead.textContent = 'Former';
+            col.appendChild(formerHead);
+
+            formerPlayers.forEach((p, idx) => {
+              const div = document.createElement('div');
+              div.className = 'mini-card is-former';
+              div.style.animationDelay = `${(activePlayers.length + idx) * 0.04}s`;
+              div.onclick = () => openProfile(p, sortedOverall.findIndex(x => (x.discordId && x.discordId === p.discordId) || x.ign === p.ign) + 1);
+              div.innerHTML = `
+                <img class="mini-head" src="https://minotar.net/helm/${encodeURIComponent(p.ign)}/24"
+                     onerror="this.src='${FALLBACK_HEAD}'" loading="lazy">
+                <span class="mini-ign">${p.ign}</span>
+                <span class="former-pill">F</span>
+                <span class="mini-pts">${p.totalPoints}pt</span>`;
+              col.appendChild(div);
+            });
+          }
+
+          inner.appendChild(col);
+        });
+
+        wrapper.appendChild(inner);
+        content.appendChild(wrapper);
+      }
+    }
+
+    // ── Build the retired tiers block for the modal ─────────────────────────
+    function buildRetiredBlock(retiredTiers) {
+      if (!retiredTiers) return '';
+      const entries = RETIRED_KEYS.filter(k => retiredTiers[k]);
+      if (entries.length === 0) return '';
+
+      const retiredPts = calcRetiredPoints(retiredTiers);
+
+      const pills = entries.map(k => `
+        <div class="retired-tier-pill">
+          <div class="retired-tier-pill-label">${RETIRED_LABELS[k]}</div>
+          <div class="retired-tier-pill-val">${retiredTiers[k]}</div>
+        </div>`).join('');
+
+      const empties = entries.length % 2 !== 0
+        ? `<div class="retired-tier-pill" style="visibility:hidden;"></div>`
+        : '';
+
+      return `
+        <div class="retired-section">
+          <div class="retired-section-head">
+            <div class="retired-section-head-icon"></div>
+            <span class="retired-section-head-label">Retired Tiers</span>
+            <span class="retired-section-head-sub">+${retiredPts} pts</span>
+          </div>
+          <div class="retired-tiers-grid">
+            ${pills}${empties}
+          </div>
+          <div class="retired-pts-note">These presets are no longer active but count toward total score</div>
+        </div>`;
+    }
+
+    // ── 3D SKIN RENDERER ────────────────────────────────────────────────────
+    let activeSkinViewer = null;
+
+    function stopSkinRenderer() {
+      if (activeSkinViewer) {
+        try { activeSkinViewer.dispose(); } catch(e) {}
+        activeSkinViewer = null;
+      }
+    }
+
+    function launch3DSkin(container, ign) {
+      if (!window.skinview3d) {
+        showSkinFallback2(container, ign);
+        return;
+      }
+
+      const W = container.offsetWidth  || 360;
+      const H = container.offsetHeight || 220;
+
+      const canvas = document.createElement('canvas');
+      canvas.width  = W;
+      canvas.height = H;
+      canvas.style.cssText = 'width:100%;height:100%;display:block;cursor:grab;';
+      container.innerHTML = '';
+      container.appendChild(canvas);
+
+      const hint = document.createElement('div');
+      hint.style.cssText = 'position:absolute;bottom:6px;left:50%;transform:translateX(-50%);font-family:"JetBrains Mono",monospace;font-size:0.42rem;color:rgba(59,130,246,0.45);letter-spacing:2px;pointer-events:none;white-space:nowrap;';
+      hint.textContent = 'DRAG TO ROTATE';
+      container.appendChild(hint);
+
+      try {
+        const viewer = new skinview3d.SkinViewer({ canvas, width: W, height: H });
+        activeSkinViewer = viewer;
+        viewer.renderer.setClearColor(0x000000, 0);
+        viewer.zoom = 0.9;
+        viewer.animation = new skinview3d.WalkingAnimation();
+        viewer.animation.speed = 0.5;
+        viewer.autoRotate      = true;
+        viewer.autoRotateSpeed = 1.2;
+        viewer.controls.enableZoom = false;
+        viewer.controls.enablePan  = false;
+        viewer.loadSkin(`https://crafatar.com/skins/${encodeURIComponent(ign)}`)
+          .catch(() => viewer.loadSkin('https://crafatar.com/skins/MHF_Steve'));
+      } catch(err) {
+        console.warn('skinview3d init error:', err);
+        showSkinFallback2(container, ign);
+      }
+    }
+
+    function showSkinFallback2(container, ign) {
+      container.innerHTML = `
+        <img src="https://crafatar.com/renders/body/${encodeURIComponent(ign)}?scale=6&overlay"
+             onerror="this.src='https://minotar.net/body/${encodeURIComponent(ign)}/100'"
+             style="height:155px;image-rendering:pixelated;display:block;margin:16px auto 0;"
+             alt="${ign}">`;
+    }
+
+    function openProfile(p, globalRank) {
+      stopSkinRenderer();
+      const rankObj = getRank(p.totalPoints);
+
+      const currentRankIdx = RANKS.findIndex(r => p.totalPoints >= r.min && p.totalPoints <= r.max);
+      const prevRank = currentRankIdx > 0 ? RANKS[currentRankIdx - 1] : null;
+      let progressHTML = '';
+      if (prevRank) {
+        const needed = prevRank.min;
+        const base = RANKS[currentRankIdx].min;
+        const pct = Math.min(100, Math.round(((p.totalPoints - base) / (needed - base)) * 100));
+        progressHTML = `
+          <div class="rank-progress">
+            <div class="rp-label">
+              <span>Progress to ${prevRank.name}</span>
+              <span>${p.totalPoints} / ${needed}</span>
+            </div>
+            <div class="rp-track"><div class="rp-fill" style="width:${pct}%"></div></div>
+          </div>`;
+      }
+
+      // Build tier tiles — show "Former" badge if player is former in that mode
+      const tilesHTML = PRESET_KEYS.map(pk => {
+        const isFormer = p.formerModes?.[pk];
+        return `
+          <div class="modal-tier-pill${isFormer ? ' is-former' : ''}">
+            <div class="modal-tier-label">
+              ${PRESET_LABELS[pk]}
+              ${isFormer ? `<span class="former-pill">Former</span>` : ''}
+            </div>
+            <div class="modal-tier-val ${tierClass(p.tiers[pk])}">${p.tiers[pk] || '—'}</div>
+          </div>`;
+      }).join('');
+
+      const retiredHTML = buildRetiredBlock(p.retiredTiers);
+
+      document.getElementById('modal-inner-wrap').innerHTML = `
+        <div class="modal-box">
+          <button class="modal-close" onclick="closeModal()">✕</button>
+          <div class="modal-inner">
+            <div id="skin3d-container" style="height:220px;background:linear-gradient(180deg,rgba(26,86,219,0.08)0%,rgba(6,10,18,0.4)100%);border-radius:12px;overflow:hidden;position:relative;margin-bottom:12px;"></div>
+            <div class="modal-ign">${p.ign}</div>
+            <div class="modal-meta-row">
+              <span class="rank-badge ${rankObj.cls}">${rankObj.name}</span>
+              ${p.region ? `<span class="region-pill">${p.region}</span>` : ''}
+            </div>
+            <div class="modal-tiers">${tilesHTML}</div>
+            ${retiredHTML}
+            <div class="modal-stats">
+              <div class="stat-row">
+                <span class="stat-label">Total Score</span>
+                <span class="stat-val">${p.totalPoints}</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label">Global Rank</span>
+                <span class="stat-val">#${globalRank || '?'}</span>
+              </div>
+              ${p.region ? `<div class="stat-row">
+                <span class="stat-label">Region</span>
+                <span class="stat-region">${p.region}</span>
+              </div>` : ''}
+            </div>
+            ${progressHTML}
+          </div>
+        </div>`;
+
+      document.getElementById('modal-overlay').classList.add('open');
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const container = document.getElementById('skin3d-container');
+          if (container) launch3DSkin(container, p.ign);
+        });
+      });
+    }
+
+    function closeModal() {
+      stopSkinRenderer();
+      document.getElementById('modal-overlay').classList.remove('open');
+    }
+
+    function showRanksModal() {
+      const rows = RANKS.map(r => {
+        const range = r.max === Infinity ? `${r.min}+ pts` : `${r.min}–${r.max} pts`;
+        return `<div class="rank-list-row">
+          <span class="rank-list-name ${r.cls}">${r.name}</span>
+          <span class="rank-list-range">${range}</span>
+        </div>`;
+      }).join('');
+      openInfoModal('Ranked Leaderboard', 'Points required per rank', `<div class="info-scroll">${rows}</div>`);
+    }
+
+    function showPointsModal() {
+      const activeRows = Object.entries(TIER_POINTS).map(([tier, pts]) => `
+        <div class="pts-list-row">
+          <span class="pts-list-tier ${tierClass(tier)}">${tier}</span>
+          <span class="pts-list-val">+${pts} pts</span>
+        </div>`).join('');
+
+      const retiredRows = RETIRED_KEYS.map(k => `
+        <div class="pts-list-row">
+          <span class="pts-list-tier" style="color:var(--retired)">${RETIRED_DISPLAY[k]}</span>
+          <span class="pts-list-val">+${RETIRED_TIER_POINTS[k]} pts</span>
+        </div>`).join('');
+
+      const body = `
+        <div class="info-scroll">
+          ${activeRows}
+          <div class="pts-section-divider">⬡ Retired Tiers</div>
+          ${retiredRows}
+        </div>`;
+
+      openInfoModal('Point Values', 'Points awarded per tier per preset', body);
+    }
+
+    function openInfoModal(title, sub, body) {
+      document.getElementById('modal-inner-wrap').innerHTML = `
+        <div class="info-modal-box">
+          <button class="modal-close" onclick="closeModal()">✕</button>
+          <div class="info-modal-title">${title}</div>
+          <div class="info-modal-sub">${sub}</div>
+          ${body}
+        </div>`;
+      document.getElementById('modal-overlay').classList.add('open');
+    }
+
+    document.getElementById('search').addEventListener('input', () => renderView());
+
+    init();
+  </script>
+</body>
+</html>
